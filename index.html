@@ -39,20 +39,44 @@
             width: 100%;
         }
 
-        /* Header & Logo Gambar */
+        /* Header & 5 Logo Container */
         .header {
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             gap: 12px;
             margin-bottom: 20px;
         }
 
+        /* Pembungkus 5 Logo */
+        .logo-group {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 8px 16px;
+            border-radius: 50px;
+            border: 1px solid rgba(0, 240, 255, 0.3);
+        }
+
         .logo-img {
-            width: 50px;           /* Lebar logo */
-            height: 50px;          /* Tinggi logo */
-            object-fit: contain;   /* Agar gambar tidak pecah/gepeng */
-            filter: drop-shadow(0 0 8px #00f0ff); /* Efek cahaya di sekitar logo */
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+            border-radius: 50%;
+            padding: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            filter: drop-shadow(0 0 5px #00f0ff);
+            transition: transform 0.3s, border-color 0.3s;
+        }
+
+        .logo-img:hover {
+            transform: scale(1.2);
+            border-color: #ff007f;
+            filter: drop-shadow(0 0 8px #ff007f);
         }
 
         h1 {
@@ -204,10 +228,16 @@
 <body>
 
     <div class="game-container">
-        <!-- Logo Gambar & Header -->
+        <!-- Header & Deretan 5 Logo -->
         <div class="header">
-            <!-- Ganti "aura.png" sesuai nama file gambar logo kamu, atau pakai link gambar online -->
-            <img src="logo.png" alt="Logo Game" class="logo-img" onerror="this.src='https://via.placeholder.com/50/00f0ff/0f172a?text=LOG'">
+            <div class="logo-group">
+                <!-- Ubah nama 'logo1.png' sampai 'logo5.png' sesuai nama file logo kamu -->
+                <img src="logo1.png" alt="Logo 1" class="logo-img" onerror="this.src='https://via.placeholder.com/40/00f0ff/0f172a?text=L1'">
+                <img src="logo2.png" alt="Logo 2" class="logo-img" onerror="this.src='https://via.placeholder.com/40/ff007f/0f172a?text=L2'">
+                <img src="logo3.png" alt="Logo 3" class="logo-img" onerror="this.src='https://via.placeholder.com/40/22c55e/0f172a?text=L3'">
+                <img src="logo4.png" alt="Logo 4" class="logo-img" onerror="this.src='https://via.placeholder.com/40/eab308/0f172a?text=L4'">
+                <img src="logo5.png" alt="Logo 5" class="logo-img" onerror="this.src='https://via.placeholder.com/40/a855f7/0f172a?text=L5'">
+            </div>
             <h1>FLIP & MATCH</h1>
         </div>
 

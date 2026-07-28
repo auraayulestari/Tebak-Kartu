@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Teka-Teki Kartu Bergambar</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            /* Background Gambar dengan Overlay Gradien */
+            background: linear-gradient(rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.85)),
+                        url('https://picsum.photos/id/1059/1600/900') no-repeat center center fixed;
+            background-size: cover;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            padding: 20px;
+        }
+
+        /* Container Game */
+        .game-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            max-width: 650px;
+            width: 100%;
+        }
+
+        /* Header & Logo Gambar */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .logo-img {
+            width: 50px;           /* Lebar logo */
+            height: 50px;          /* Tinggi logo */
+            object-fit: contain;   /* Agar gambar tidak pecah/gepeng */
+            filter: drop-shadow(0 0 8px #00f0ff); /* Efek cahaya di sekitar logo */
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            letter-spacing: 1px;
+            color: #00f0ff;
+            text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+        }
+
+        /* Info Board (Level, Skor, Waktu) */
+        .info-board {
+            display: flex;
+            justify-content: space-around;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        .info-item span {
+            color: #ff007f;
+        }
+
+        /* Grid Kartu */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+            perspective: 1000px;
+        }
+
+        /* Desain Kartu */
+        .card {
+            aspect-ratio: 1;
+            background-color: transparent;
+            cursor: pointer;
+            border-radius: 12px;
+        }
+
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.5s;
+            transform-style: preserve-3d;
+        }
+
+        .card.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .card-front {
+            background: linear-gradient(135deg, #2a2a72, #009ffd);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            font-size: 2rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .card-back {
+            background: #ffffff;
+            transform: rotateY(180deg);
+            font-size: 2.5rem;
+            border: 2px solid #00f0ff;
+        }
+
+        .card.matched .card-inner {
+            transform: rotateY(180deg);
+            animation: pulse 0.5s ease-in-out;
+        }
+
+        .card.matched .card-back {
+            background: #22c55e;
+            border-color: #4ade80;
+        }
+
+        @keyframes pulse {
+            0% { transform: rotateY(180deg) scale(1); }
+            50% { transform: rotateY(180deg) scale(1.1); }
+            100% { transform: rotateY(180deg) scale(1); }
+        }
+
+        /* Kontrol Game */
+        .controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #00f0ff;
+            color: #0f172a;
+            box-shadow: 0 0 10px rgba(0, 240, 255, 0.4);
+        }
+
+        button:hover {
+            background: #ff007f;
+            color: #ffffff;
+            box-shadow: 0 0 15px rgba(255, 0, 127, 0.6);
+            transform: translateY(-2px);
+        }
+
+        /* Overlay Pesan Win/Lose */
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .overlay h2 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #00f0ff;
+        }
+
+        .overlay p {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <!-- Logo Gambar & Header -->
+        <div class="header">
+            <!-- Ganti "aura.jpeg" sesuai nama file gambar logo kamu, atau pakai link gambar online -->
+            <img src="logo.png" alt="Logo Game" class="logo-img" onerror="this.src='https://via.placeholder.com/50/00f0ff/0f172a?text=LOG'">
+            <h1>FLIP & MATCH</h1>
+        </div>
+
+        <!-- Info Level, Skor, dan Waktu -->
+        <div class="info-board">
+            <div class="info-item">Level: <span id="level-txt">1</span></div>
+            <div class="info-item">Skor: <span id="score-txt">0</span></div>
+            <div class="info-item">Waktu: <span id="timer-txt">60</span>s</div>
+        </div>
+
+        <!-- Area Kartu -->
+        <div class="grid-container" id="grid"></div>
+
+        <!-- Tombol Kontrol -->
+        <div class="controls">
+            <button onclick="restartGame()">Ulangi Game</button>
+            <button id="sound-btn" onclick="toggleSound()">🔊 Suara: ON</button>
+        </div>
+    </div>
+
+    <!-- Screen Hasil (Menang/Kalah) -->
+    <div class="overlay" id="overlay">
+        <h2 id="overlay-title">SELAMAT!</h2>
+        <p id="overlay-msg">Anda berhasil menyelesaikan level ini!</p>
+        <button id="next-btn" onclick="nextLevel()">Lanjut Level</button>
+    </div>
+
+    <script>
+        // Kumpulan Emoji untuk Kartu
+        const emojis = ['🍎', '🍌', '🍓', '🥑', '🐱', '🐶', '🦊', '🦁', '🚀', '⭐', '🎈', '🎮'];
+
+        // Status Game
+        let level = 1;
+        let score = 0;
+        let timer = 60;
+        let timerInterval = null;
+        let soundEnabled = true;
+
+        let cards = [];
+        let flippedCards = [];
+        let matchedPairs = 0;
+        let lockBoard = false;
+
+        const gridEl = document.getElementById('grid');
+        const levelTxt = document.getElementById('level-txt');
+        const scoreTxt = document.getElementById('score-txt');
+        const timerTxt = document.getElementById('timer-txt');
+        const overlay = document.getElementById('overlay');
+
+        // Web Audio API untuk Efek Suara
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            let now = audioCtx.currentTime;
+
+            if (type === 'flip') {
+                osc.frequency.setValueAtTime(400, now);
+                osc.frequency.exponentialRampToValueAtTime(800, now + 0.1);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.1);
+                osc.start(now);
+                osc.stop(now + 0.1);
+            } else if (type === 'match') {
+                osc.frequency.setValueAtTime(523.25, now);
+                osc.frequency.setValueAtTime(659.25, now + 0.1);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
+                osc.start(now);
+                osc.stop(now + 0.3);
+            } else if (type === 'win') {
+                osc.frequency.setValueAtTime(523.25, now);
+                osc.frequency.setValueAtTime(659.25, now + 0.15);
+                osc.frequency.setValueAtTime(783.99, now + 0.3);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.5);
+                osc.start(now);
+                osc.stop(now + 0.5);
+            } else if (type === 'lose') {
+                osc.frequency.setValueAtTime(300, now);
+                osc.frequency.linearRampToValueAtTime(150, now + 0.4);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.4);
+                osc.start(now);
+                osc.stop(now + 0.4);
+            }
+        }
+
+        // Inisialisasi Game
+        function initGame() {
+            gridEl.innerHTML = '';
+            flippedCards = [];
+            matchedPairs = 0;
+            lockBoard = false;
+
+            // Pengaturan Kesulitan Berdasarkan Level
+            let numPairs = Math.min(3 + level, 10);
+            timer = Math.max(65 - (level * 5), 20);
+
+            levelTxt.innerText = level;
+            scoreTxt.innerText = score;
+            timerTxt.innerText = timer;
+
+            // Atur Grid Kolom
+            let totalCards = numPairs * 2;
+            let cols = totalCards <= 8 ? 4 : (totalCards <= 12 ? 4 : 4);
+            gridEl.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+
+            // Ambil emoji & acak kartu
+            let selectedEmojis = emojis.slice(0, numPairs);
+            let cardDeck = [...selectedEmojis, ...selectedEmojis];
+            cardDeck.sort(() => Math.random() - 0.5);
+
+            // Buat Elemen Kartu
+            cardDeck.forEach((emoji, index) => {
+                const card = document.createElement('div');
+                card.classList.add('card');
+                card.dataset.emoji = emoji;
+
+                card.innerHTML = `
+                    <div class="card-inner">
+                        <div class="card-front">❓</div>
+                        <div class="card-back">${emoji}</div>
+                    </div>
+                `;
+
+                card.addEventListener('click', flipCard);
+                gridEl.appendChild(card);
+            });
+
+            // Jalankan Timer
+            clearInterval(timerInterval);
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+
+        // Jalankan Fungsi Buka Kartu
+        function flipCard() {
+            if (lockBoard) return;
+            if (this.classList.contains('flipped') || this.classList.contains('matched')) return;
+
+            playSound('flip');
+            this.classList.add('flipped');
+            flippedCards.push(this);
+
+            if (flippedCards.length === 2) {
+                checkMatch();
+            }
+        }
+
+        // Cek Apakah 2 Kartu Cocok
+        function checkMatch() {
+            lockBoard = true;
+            let [card1, card2] = flippedCards;
+            let isMatch = card1.dataset.emoji === card2.dataset.emoji;
+
+            if (isMatch) {
+                setTimeout(() => {
+                    playSound('match');
+                    card1.classList.add('matched');
+                    card2.classList.add('matched');
+                    score += 10 * level;
+                    scoreTxt.innerText = score;
+                    matchedPairs++;
+                    flippedCards = [];
+                    lockBoard = false;
+
+                    let totalPairs = gridEl.children.length / 2;
+                    if (matchedPairs === totalPairs) {
+                        endLevel(true);
+                    }
+                }, 400);
+            } else {
+                setTimeout(() => {
+                    card1.classList.remove('flipped');
+                    card2.classList.remove('flipped');
+                    flippedCards = [];
+                    lockBoard = false;
+                }, 900);
+            }
+        }
+
+        // Update Waktu
+        function updateTimer() {
+            timer--;
+            timerTxt.innerText = timer;
+            if (timer <= 0) {
+                endLevel(false);
+            }
+        }
+
+        // Akhir Level (Menang/Kalah)
+        function endLevel(isWin) {
+            clearInterval(timerInterval);
+            overlay.style.display = 'flex';
+
+            if (isWin) {
+                playSound('win');
+                document.getElementById('overlay-title').innerText = "LEVEL SELESAI!";
+                document.getElementById('overlay-msg').innerText = `Skor Kamu saat ini: ${score}`;
+                document.getElementById('next-btn').innerText = "Lanjut Level Berikutnya";
+                document.getElementById('next-btn').onclick = () => {
+                    level++;
+                    overlay.style.display = 'none';
+                    initGame();
+                };
+            } else {
+                playSound('lose');
+                document.getElementById('overlay-title').innerText = "GAME OVER!";
+                document.getElementById('overlay-msg').innerText = `Waktu habis! Total Skor Akhir: ${score}`;
+                document.getElementById('next-btn').innerText = "Coba Lagi";
+                document.getElementById('next-btn').onclick = () => {
+                    level = 1;
+                    score = 0;
+                    overlay.style.display = 'none';
+                    initGame();
+                };
+            }
+        }
+
+        // Toggle Sound ON/OFF
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.getElementById('sound-btn').innerText = soundEnabled ? "🔊 Suara: ON" : "🔇 Suara: OFF";
+        }
+
+        // Restart Game
+        function restartGame() {
+            level = 1;
+            score = 0;
+            overlay.style.display = 'none';
+            initGame();
+        }
+
+        // Mulai Game Pertama Kali
+        window.onload = () => {
+            initGame();
+        };
+    </script>
+</body>
+</html>
